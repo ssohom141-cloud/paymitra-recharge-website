@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMitra Recharge - Bill Payments & Recharges</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+            font-size: 1.5rem;
+        }
+
+        .service-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: white;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .service-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .wallet-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .admin-sidebar {
+            height: 100vh;
+            background-color: #212529;
+            color: white;
+            padding-top: 2rem;
+            position: fixed;
+            width: 250px;
+        }
+
+        .admin-sidebar a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 10px 20px;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .admin-sidebar a:hover, .admin-sidebar a.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .admin-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        /* Utility classes */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .admin-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light sticky-top" id="main-nav">
+    <div class="container">
+        <a class="navbar-brand" href="#" onclick="showSection('home')">
+            <i class="fas fa-bolt text-warning"></i> PayMitra
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('home')">Home</a>
+                </li>
+                <li class="nav-item auth-hidden">
+                    <a class="nav-link" href="#" onclick="showSection('services')">Services</a>
+                </li>
+                <li class="nav-item auth-hidden">
+                    <a class="nav-link" href="#" onclick="showSection('history')">History</a>
+                </li>
+                <li class="nav-item auth-visible">
+                    <a class="nav-link btn btn-outline-primary ms-2" href="#" onclick="showSection('login')">Login / Register</a>
+                </li>
+                <li class="nav-item auth-hidden dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i> <span id="currentUserName">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="showSection('wallet')">My Wallet (₹<span id="navWalletBalance">500</span>)</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showAdminPanel()">Admin Panel</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN APP CONTAINER -->
+<div id="app-container">
+
+    <!-- SECTION: HOME -->
+    <div id="home-section" class="section-view fade-in">
+        <div class="container mt-5">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <h1 class="display-4 fw-bold mb-4">Fast & Secure Recharges</h1>
+                    <p class="lead mb-4">Pay your bills, recharge your mobile, and DTH instantly with PayMitra. Secure payments and instant confirmations.</p>
+                    <button class="btn btn-primary btn-lg px-5 rounded-pill" onclick="showSection('services')">Recharge Now</button>
+                </div>
+                <div class="col-md-6 mt-5 mt-md-0 text-center">
+                    <!-- Placeholder for hero image -->
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Payments" class="img-fluid rounded-3 shadow-lg" style="max-height: 400px; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION: LOGIN/REGISTER -->
+    <div id="login-section" class="section-view hidden fade-in">
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="card shadow-sm border-0 rounded-3">
+                        <div class="card-body p-5">
+                            <ul class="nav nav-pills nav-justified mb-4" id="pills-tab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="pills-login-tab" data-bs-toggle="pill" data-bs-target="#pills-login" type="button">Login</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="pills-register-tab" data-bs-toggle="pill" data-bs-target="#pills-register" type="button">Register</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="pills-tabContent">
+                                <!-- Login Form -->
+                                <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
+                                    <form id="loginForm" onsubmit="handleLogin(event)">
+                                        <div class="mb-3">
+                                            <label class="form-label">Email / Mobile</label>
+                                            <input type="text" class="form-control" required value="user@paymitra.com">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Password</label>
+                                            <input type="password" class="form-control" required value="password123">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                                        <div class="text-center mt-3 text-muted small">
+                                            Demo Credentials: user@paymitra.com / password123
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- Register Form -->
+                                <div class="tab-pane fade" id="pills-register" role="tabpanel">
+                                    <form id="registerForm" onsubmit="handleRegister(event)">
+                                        <div class="mb-3">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Mobile Number</label>
+                                            <input type="tel" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Password</label>
+                                            <input type="password" class="form-control" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-success w-100">Create Account</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION: SERVICES DASHBOARD -->
+    <div id="services-section" class="section-view hidden fade-in">
+        <div class="container mt-5">
+            <h2 class="mb-4 fw-bold">Select a Service</h2>
+            <div class="row g-4">
+                <!-- Mobile Prepaid -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('Mobile Prepaid')">
+                        <i class="fas fa-mobile-alt service-icon"></i>
+                        <h5 class="mb-0">Mobile Prepaid</h5>
+                    </div>
+                </div>
+                <!-- DTH -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('DTH Recharge')">
+                        <i class="fas fa-satellite-dish service-icon"></i>
+                        <h5 class="mb-0">DTH</h5>
+                    </div>
+                </div>
+                <!-- Electricity -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('Electricity Bill')">
+                        <i class="fas fa-lightbulb service-icon"></i>
+                        <h5 class="mb-0">Electricity</h5>
+                    </div>
+                </div>
+                <!-- Gas -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('Gas Bill')">
+                        <i class="fas fa-burn service-icon"></i>
+                        <h5 class="mb-0">Gas</h5>
+                    </div>
+                </div>
+                <!-- Water -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('Water Bill')">
+                        <i class="fas fa-faucet service-icon"></i>
+                        <h5 class="mb-0">Water</h5>
+                    </div>
+                </div>
+                <!-- Broadband -->
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="service-card p-4 text-center h-100" onclick="openRechargeModal('Broadband')">
+                        <i class="fas fa-wifi service-icon"></i>
+                        <h5 class="mb-0">Broadband</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION: WALLET -->
+    <div id="wallet-section" class="section-view hidden fade-in">
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="wallet-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-1 text-white-50">Current Balance</h4>
+                                <h1 class="display-4 fw-bold mb-0">₹<span id="walletMainBalance">500.00</span></h1>
+                            </div>
+                            <i class="fas fa-wallet fa-4x opacity-50"></i>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">Add Money to Wallet</h5>
+                            
+                            <!-- 
+                                // ==========================================
+                                // PHP BACKEND INTEGRATION NOTES (WALLET ADD)
+                                // ==========================================
+                                // 1. Create order using Razorpay API
+                                // 2. Return Order ID to frontend
+                                // 3. On success, verify signature and update user_wallet table
+                                // 
+                                // RAZORPAY CREDENTIALS:
+                                // $keyId = 'YOUR_RAZORPAY_KEY_ID';
+                                // $keySecret = 'YOUR_RAZORPAY_KEY_SECRET';
+                            -->
+
+                            <form id="addMoneyForm" onsubmit="handleAddMoney(event)">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control form-control-lg" id="addMoneyAmount" placeholder="Enter Amount" required min="10">
+                                    <button class="btn btn-primary" type="submit">Add Money</button>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAddAmount(100)">+₹100</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAddAmount(500)">+₹500</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAddAmount(1000)">+₹1000</button>
+                                </div>
+                            </form>
+                            <div id="paymentStatus" class="mt-3 hidden alert"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION: HISTORY -->
+    <div id="history-section" class="section-view hidden fade-in">
+        <div class="container mt-5">
+            <h2 class="mb-4">Transaction History</h2>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Txn ID</th>
+                                    <th>Date</th>
+                                    <th>Service</th>
+                                    <th>Number/Account</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> <!-- End App Container -->
+
+<!-- ADMIN PANEL (FULL SCREEN OVERLAY) -->
+<div id="admin-panel" class="hidden">
+    <div class="d-flex h-100">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <h3 class="text-center mb-4 text-primary fw-bold">Admin Panel</h3>
+            <a href="#" class="active" onclick="showAdminTab('admin-dashboard')"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+            <a href="#" onclick="showAdminTab('admin-users')"><i class="fas fa-users me-2"></i> Manage Users</a>
+            <a href="#" onclick="showAdminTab('admin-transactions')"><i class="fas fa-exchange-alt me-2"></i> Transactions</a>
+            <a href="#" onclick="showAdminTab('admin-apis')"><i class="fas fa-cogs me-2"></i> API Settings</a>
+            <hr class="border-secondary my-3">
+            <a href="#" onclick="closeAdminPanel()"><i class="fas fa-sign-out-alt me-2"></i> Exit Admin</a>
+        </div>
+
+        <!-- Content -->
+        <div class="admin-content flex-grow-1 bg-light overflow-auto">
+            
+            <!-- Dashboard Tab -->
+            <div id="admin-dashboard" class="admin-tab">
+                <h2 class="mb-4">Dashboard Overview</h2>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white border-0 h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5>Total Users</h5>
+                                <h2 class="display-6 fw-bold">1,245</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white border-0 h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5>Today's Recharges</h5>
+                                <h2 class="display-6 fw-bold">₹45,230</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark border-0 h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5>Pending Txns</h5>
+                                <h2 class="display-6 fw-bold">12</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white border-0 h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5>Total Profit</h5>
+                                <h2 class="display-6 fw-bold">₹8,450</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Settings Tab -->
+            <div id="admin-apis" class="admin-tab hidden">
+                <h2 class="mb-4">API Configuration</h2>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white fw-bold">Recharge Provider API</div>
+                    <div class="card-body">
+                        <!-- 
+                            // ==========================================
+                            // PHP BACKEND INTEGRATION NOTES (API SETTINGS)
+                            // ==========================================
+                            // Save these settings securely in DB or config file.
+                            // Do not expose them to the frontend in a real app.
+                        -->
+                        <form onsubmit="event.preventDefault(); alert('Settings Saved!');">
+                            <div class="mb-3">
+                                <label class="form-label">Provider Name</label>
+                                <select class="form-select">
+                                    <option>CyberPlat</option>
+                                    <option>Ezeepay</option>
+                                    <option>Custom API</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">API Key / Token</label>
+                                <input type="password" class="form-control" value="********************">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Endpoint URL</label>
+                                <input type="text" class="form-control" value="https://api.provider.com/v1/recharge">
+                            </div>
+                            <button class="btn btn-primary">Update Provider Settings</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold">Payment Gateway (Razorpay)</div>
+                    <div class="card-body">
+                        <form onsubmit="event.preventDefault(); alert('Settings Saved!');">
+                            <div class="mb-3">
+                                <label class="form-label">Key ID</label>
+                                <input type="password" class="form-control" value="rzp_test_123456789">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Key Secret</label>
+                                <input type="password" class="form-control" value="********************">
+                            </div>
+                            <button class="btn btn-primary">Update Gateway Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Placeholder for other tabs -->
+            <div id="admin-users" class="admin-tab hidden">
+                <h2 class="mb-4">Manage Users (Demo View)</h2>
+                <p>User list table would go here...</p>
+            </div>
+            <div id="admin-transactions" class="admin-tab hidden">
+                <h2 class="mb-4">All Transactions (Demo View)</h2>
+                <p>Transaction log table would go here...</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- RECHARGE MODAL -->
+<div class="modal fade" id="rechargeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="rechargeModalTitle">Perform Recharge</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- 
+                    // ==========================================
+                    // PHP BACKEND INTEGRATION NOTES (RECHARGE)
+                    // ==========================================
+                    // 1. Validate inputs (number length, operator)
+                    // 2. Check wallet balance (user_wallet table)
+                    // 3. Deduct balance from wallet
+                    // 4. Call 3rd Party Recharge API using CURL
+                    // 5. Update transaction status based on API response
+                -->
+                <form id="rechargeForm" onsubmit="processRecharge(event)">
+                    <input type="hidden" id="serviceType">
+                    
+                    <div class="mb-3">
+                        <label class="form-label" id="numberLabel">Mobile/Account Number</label>
+                        <input type="text" class="form-control form-control-lg" id="rechargeNumber" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Operator/Biller</label>
+                        <select class="form-select form-select-lg" id="rechargeOperator" required>
+                            <option value="">Select Operator</option>
+                            <option value="Jio">Jio</option>
+                            <option value="Airtel">Airtel</option>
+                            <option value="VI">Vodafone Idea</option>
+                            <option value="BSNL">BSNL</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Amount (₹)</label>
+                        <input type="number" class="form-control form-control-lg" id="rechargeAmount" required min="10">
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-wallet me-2"></i> Wallet Balance: ₹<span class="modalWalletBalance">500</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg" id="payBtn">Pay Now</button>
+                    <div id="rechargeStatus" class="mt-3 hidden alert text-center"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Mock Razorpay Script (for simulation) -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let isLoggedIn = false;
+    let userBalance = 500.00;
+    
+    // Mock History Data
+    let transactions = [
+        { id: 'TXN8934', date: '2023-10-25 14:30', service: 'Mobile Prepaid', number: '9876543210', amount: 299, status: 'Success' },
+        { id: 'TXN8933', date: '2023-10-20 09:15', service: 'Wallet Add', number: 'Razorpay', amount: 500, status: 'Success' },
+        { id: 'TXN8921', date: '2023-10-05 18:45', service: 'Electricity', number: '123456789', amount: 1250, status: 'Failed' }
+    ];
+
+    let rechargeModalInstance;
+
+    // --- INITIALIZATION ---
+    document.addEventListener("DOMContentLoaded", () => {
+        rechargeModalInstance = new bootstrap.Modal(document.getElementById('rechargeModal'));
+        updateAuthUI();
+        renderHistory();
+        updateWalletDisplays();
+    });
+
+    // --- NAVIGATION LOGIC ---
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.section-view').forEach(el => el.classList.add('hidden'));
+        document.getElementById('main-nav').classList.remove('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
+        
+        // Handle auth guarding
+        if ((sectionId === 'wallet' || sectionId === 'history' || sectionId === 'services') && !isLoggedIn) {
+            sectionId = 'login';
+        }
+
+        // Show target
+        document.getElementById(sectionId + '-section').classList.remove('hidden');
+    }
+
+    // --- AUTHENTICATION MOCK ---
+    function handleLogin(e) {
+        e.preventDefault();
+        // MOCK API CALL TO PHP: /api/login.php
+        isLoggedIn = true;
+        updateAuthUI();
+        showSection('home');
+    }
+
+    function handleRegister(e) {
+        e.preventDefault();
+         // MOCK API CALL TO PHP: /api/register.php
+        alert("Registration successful. Please login.");
+        document.getElementById('pills-login-tab').click();
+    }
+
+    function logout() {
+        isLoggedIn = false;
+        updateAuthUI();
+        showSection('home');
+    }
+
+    function updateAuthUI() {
+        if (isLoggedIn) {
+            document.querySelectorAll('.auth-hidden').forEach(el => el.style.display = 'block');
+            document.querySelectorAll('.auth-visible').forEach(el => el.style.display = 'none');
+        } else {
+            document.querySelectorAll('.auth-hidden').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.auth-visible').forEach(el => el.style.display = 'block');
+        }
+    }
+
+    // --- WALLET & PAYMENT MOCK ---
+    function updateWalletDisplays() {
+        document.getElementById('navWalletBalance').innerText = userBalance.toFixed(2);
+        document.getElementById('walletMainBalance').innerText = userBalance.toFixed(2);
+        document.querySelectorAll('.modalWalletBalance').forEach(el => el.innerText = userBalance.toFixed(2));
+    }
+
+    function setAddAmount(amount) {
+        document.getElementById('addMoneyAmount').value = amount;
+    }
+
+    function handleAddMoney(e) {
+        e.preventDefault();
+        const amount = parseFloat(document.getElementById('addMoneyAmount').value);
+        const statusDiv = document.getElementById('paymentStatus');
+        
+        if(amount < 10) return;
+
+        statusDiv.className = 'mt-3 alert alert-info';
+        statusDiv.innerHTML = 'Initializing Razorpay Gateway...';
+        statusDiv.classList.remove('hidden');
+
+        /* 
+            REAL INTEGRATION:
+            1. Fetch order_id from PHP backend here.
+            2. Pass order_id to Razorpay options.
+        */
+
+        // Simulate Gateway Delay
+        setTimeout(() => {
+            // MOCK SUCCESS
+            userBalance += amount;
+            updateWalletDisplays();
+            
+            // Add to history
+            addTransactionToHistory('Wallet Add', 'Razorpay', amount, 'Success');
+
+            statusDiv.className = 'mt-3 alert alert-success';
+            statusDiv.innerHTML = `Successfully added ₹${amount} to wallet!`;
+            
+            document.getElementById('addMoneyForm').reset();
+            
+            setTimeout(() => { statusDiv.classList.add('hidden'); }, 3000);
+        }, 1500);
+    }
+
+    // --- RECHARGE LOGIC MOCK ---
+    function openRechargeModal(serviceName) {
+        if (!isLoggedIn) {
+            showSection('login');
+            return;
+        }
+
+        document.getElementById('rechargeModalTitle').innerText = serviceName;
+        document.getElementById('serviceType').value = serviceName;
+        
+        const numberLabel = document.getElementById('numberLabel');
+        const operatorSelect = document.getElementById('rechargeOperator');
+        
+        // Dynamic form updates based on service
+        if(serviceName.includes('Bill')) {
+            numberLabel.innerText = 'Consumer/Account Number';
+            operatorSelect.innerHTML = `
+                <option value="">Select Board</option>
+                <option value="MSEDCL">MSEDCL</option>
+                <option value="TATA">Tata Power</option>
+            `;
+        } else if (serviceName === 'DTH Recharge') {
+            numberLabel.innerText = 'Subscriber ID / VC Number';
+            operatorSelect.innerHTML = `
+                <option value="">Select DTH</option>
+                <option value="TataSky">Tata Sky</option>
+                <option value="DishTV">Dish TV</option>
+                <option value="AirtelDTH">Airtel Digital</option>
+            `;
+        } else {
+            numberLabel.innerText = 'Mobile Number';
+            operatorSelect.innerHTML = `
+                <option value="">Select Operator</option>
+                <option value="Jio">Jio</option>
+                <option value="Airtel">Airtel</option>
+                <option value="VI">Vodafone Idea</option>
+                <option value="BSNL">BSNL</option>
+            `;
+        }
+
+        // Reset form
+        document.getElementById('rechargeForm').reset();
+        document.getElementById('rechargeStatus').classList.add('hidden');
+        document.getElementById('payBtn').disabled = false;
+        document.getElementById('payBtn').innerText = 'Pay Now';
+
+        rechargeModalInstance.show();
+    }
+
+    function processRecharge(e) {
+        e.preventDefault();
+        
+        const service = document.getElementById('serviceType').value;
+        const number = document.getElementById('rechargeNumber').value;
+        const amount = parseFloat(document.getElementById('rechargeAmount').value);
+        const btn = document.getElementById('payBtn');
+        const statusDiv = document.getElementById('rechargeStatus');
+
+        if(amount > userBalance) {
+            statusDiv.className = 'mt-3 alert alert-danger';
+            statusDiv.innerHTML = 'Insufficient Wallet Balance! Please add money.';
+            statusDiv.classList.remove('hidden');
+            return;
+        }
+
+        // UI Loading State
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        statusDiv.classList.add('hidden');
+
+        /* 
+            REAL INTEGRATION:
+            Send AJAX request to PHP backend (e.g., /api/recharge.php)
+            Backend handles deduction and external API call.
+        */
+
+        // Simulate API Call Processing Time
+        setTimeout(() => {
+            // Deduct balance
+            userBalance -= amount;
+            updateWalletDisplays();
+
+            // Log Transaction
+            addTransactionToHistory(service, number, amount, 'Success');
+
+            // Show Success
+            btn.innerHTML = '<i class="fas fa-check"></i> Success';
+            btn.classList.replace('btn-primary', 'btn-success');
+            
+            statusDiv.className = 'mt-3 alert alert-success';
+            statusDiv.innerHTML = `Recharge Successful for ${number}!`;
+            statusDiv.classList.remove('hidden');
+
+            // Reset after delay
+            setTimeout(() => {
+                rechargeModalInstance.hide();
+                btn.classList.replace('btn-success', 'btn-primary');
+            }, 2000);
+
+        }, 2000);
+    }
+
+    // --- HISTORY MOCK ---
+    function addTransactionToHistory(service, number, amount, status) {
+        const newTxn = {
+            id: 'TXN' + Math.floor(Math.random() * 9000 + 1000),
+            date: new Date().toISOString().slice(0,16).replace('T',' '), // YYYY-MM-DD HH:MM
+            service: service,
+            number: number,
+            amount: amount,
+            status: status
+        };
+        transactions.unshift(newTxn);
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const tbody = document.getElementById('historyTableBody');
+        tbody.innerHTML = '';
+        
+        transactions.forEach(txn => {
+            const statusClass = txn.status === 'Success' ? 'text-success' : 'text-danger';
+            const row = `
+                <tr>
+                    <td class="text-muted fw-bold">${txn.id}</td>
+                    <td>${txn.date}</td>
+                    <td>${txn.service}</td>
+                    <td>${txn.number}</td>
+                    <td class="fw-bold">₹${txn.amount.toFixed(2)}</td>
+                    <td class="${statusClass} fw-bold">${txn.status}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // --- ADMIN PANEL LOGIC ---
+    function showAdminPanel() {
+        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('main-nav').classList.add('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
+    }
+
+    function closeAdminPanel() {
+        document.getElementById('admin-panel').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('main-nav').classList.remove('hidden');
+        showSection('home');
+    }
+
+    function showAdminTab(tabId) {
+        // Hide all tabs
+        document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+        
+        // Remove active class from links
+        document.querySelectorAll('.admin-sidebar a').forEach(el => el.classList.remove('active'));
+        
+        // Show selected
+        document.getElementById(tabId).classList.remove('hidden');
+        event.currentTarget.classList.add('active');
+    }
+
+</script>
+</body>
+</html>
